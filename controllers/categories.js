@@ -37,7 +37,7 @@ async function show(request, response) {
         if (!normalizedSlug) {
             return response.status(400).json({
                 error: "Bad Request",
-                error: "Slug non valido"
+                message: "Slug non valido"
             })
         }
 
@@ -52,9 +52,9 @@ async function show(request, response) {
             LIMIT 1
         `;
 
-        const [rows] = await connection.execute(querySql);
+        const [rows] = await connection.execute(querySql, [normalizedSlug]);
 
-        if (rows.lenght === 0) {
+        if (rows.length === 0) {
             return response.status(404).json({
                 error: "Not Found",
                 message: "Categoria non troavata"
