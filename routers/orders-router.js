@@ -6,7 +6,7 @@ const orderRouter = express.Router();
 
 orderRouter.get('/', index);
 
-orderRouter.get('/:slug', show);
+orderRouter.get('/:id', show);
 
 orderRouter.post('/', create)
 

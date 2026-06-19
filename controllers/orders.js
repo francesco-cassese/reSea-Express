@@ -28,20 +28,20 @@ async function index(request, response) {
 
         return response.status(500).json({
             error: "Internal Server Error",
-            message: "Errore durante il recupero delle categorie"
+            message: "Errore durante il recupero degli ordini"
         });
     }
 }
 
 async function show(request, response) {
     try {
-        const { slug } = request.params;
-        const normalizedSlug = String(slug || "").trim().toLocaleLowerCase();
+        const { id } = request.params;
+        const orderId = Number(id);
 
-        if (!normalizedSlug) {
+        if (!Number.isInteger(orderId) || orderId <= 0) {
             return response.status(400).json({
                 error: "Bad Request",
-                error: "Slug non valido"
+                message: "Id non valido"
             })
         }
 
@@ -56,16 +56,16 @@ async function show(request, response) {
                 client_name, 
                 phone_number
             FROM orders
-            WHERE slug = ?
+            WHERE id = ?
             LIMIT 1
         `;
 
-        const [rows] = await connection.execute(querySql);
+        const [rows] = await connection.execute(querySql, [orderId]);
 
-        if (rows.lenght === 0) {
+        if (rows.length === 0) {
             return response.status(404).json({
                 error: "Not Found",
-                message: "Categoria non troavata"
+                message: "Ordine non trovato"
             });
         }
 
@@ -79,7 +79,7 @@ async function show(request, response) {
 
         return response.status(500).json({
             error: "Internal Server Error",
-            message: "Errore durante il recupero delle categorie"
+            message: "Errore durante il creazione degli ordini"
         });
     }
 }
