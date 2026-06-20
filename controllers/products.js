@@ -1,4 +1,6 @@
 import connection from "../database/connection.js";
+import { formatProduct } from "../utils/utils.js";
+
 
 async function index(request, response) {
     try {
