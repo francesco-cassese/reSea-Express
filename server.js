@@ -1,21 +1,22 @@
 import express from 'express';
 import orderRouter from './routers/orders-router.js';
 import productRouter from './routers/products-router.js';
+import cors from 'cors';
 
 const app = express();
 
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || 'localhost';
 
+app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use('/assets', express.static('public/assets'))
 
 app.use('/orders', orderRouter);
 
 app.use('/products', productRouter)
 
 app.use((request, response, next) => {
-
     response.status(404).json({
         error: "Resource not found",
         message: "The requested endpoint does not exist on the server"

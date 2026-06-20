@@ -79,3 +79,5 @@ function validateCreationOrder(request, response, next) {
 
     next();
 };
+
+export default validateCreationOrder;
