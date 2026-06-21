@@ -23,7 +23,7 @@ async function index(request, response) {
         console.error(error);
 
         return response.status(500).json({
-            error: "Internal Server Error",
+            error: "Errore interno del server",
             message: "Errore durante il recupero delle categorie"
         });
     }
@@ -32,11 +32,10 @@ async function index(request, response) {
 async function show(request, response) {
     try {
         const { slug } = request.params;
-        const normalizedSlug = String(slug || "").trim().toLocaleLowerCase();
 
-        if (!normalizedSlug) {
+        if (!slug) {
             return response.status(400).json({
-                error: "Bad Request",
+                error: "Richiesta non valida",
                 message: "Slug non valido"
             })
         }
@@ -52,12 +51,12 @@ async function show(request, response) {
             LIMIT 1
         `;
 
-        const [rows] = await connection.execute(querySql, [normalizedSlug]);
+        const [rows] = await connection.execute(querySql, [slug]);
 
         if (rows.length === 0) {
             return response.status(404).json({
-                error: "Not Found",
-                message: "Categoria non troavata"
+                error: "Risorsa non trovata",
+                message: "Categoria non trovata"
             });
         }
 
@@ -70,7 +69,7 @@ async function show(request, response) {
         console.error(error);
 
         return response.status(500).json({
-            error: "Internal Server Error",
+            error: "Errore interno del server",
             message: "Errore durante il recupero delle categorie"
         });
     }

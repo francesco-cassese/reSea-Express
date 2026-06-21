@@ -27,7 +27,7 @@ async function index(request, response) {
         console.error(error);
 
         return response.status(500).json({
-            error: "Internal Server Error",
+            error: "Errore interno del server",
             message: "Errore durante il recupero degli ordini"
         });
     }
@@ -35,15 +35,7 @@ async function index(request, response) {
 
 async function show(request, response) {
     try {
-        const { id } = request.params;
-        const orderId = Number(id);
-
-        if (!Number.isInteger(orderId) || orderId <= 0) {
-            return response.status(400).json({
-                error: "Bad Request",
-                message: "Id non valido"
-            })
-        }
+        const orderId = request.orderId;
 
         const querySql = `
             SELECT
@@ -64,7 +56,7 @@ async function show(request, response) {
 
         if (rows.length === 0) {
             return response.status(404).json({
-                error: "Not Found",
+                error: "Risorsa non trovata",
                 message: "Ordine non trovato"
             });
         }
@@ -78,8 +70,8 @@ async function show(request, response) {
         console.error(error);
 
         return response.status(500).json({
-            error: "Internal Server Error",
-            message: "Errore durante il creazione degli ordini"
+            error: "Errore interno del server",
+            message: "Errore durante il recupero dell'ordine"
         });
     }
 }
@@ -95,21 +87,6 @@ async function create(request, response) {
             client_name,
             phone_number
         } = request.body;
-
-        if (
-            !email_client ||
-            !shipping_address ||
-            !billing_address ||
-            total_amount == null ||
-            !order_date ||
-            !client_name ||
-            !phone_number
-        ) {
-            return response.status(400).json({
-                error: "Bad Request",
-                message: "Dati obbligatori mancanti"
-            });
-        }
 
         const querySql = `
             INSERT INTO orders (
@@ -145,7 +122,7 @@ async function create(request, response) {
         console.error(error);
 
         return response.status(500).json({
-            error: "Internal Server Error",
+            error: "Errore interno del server",
             message: "Errore durante la creazione dell'ordine"
         });
     }

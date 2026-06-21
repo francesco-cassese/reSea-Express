@@ -1,7 +1,11 @@
 import express from 'express';
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from 'url';
 import orderRouter from './routers/orders-router.js';
 import productRouter from './routers/products-router.js';
-import cors from 'cors';
+import categoriesRouter from './routers/categories-router.js';
+
 
 const app = express();
 
@@ -12,14 +16,15 @@ app.use(cors());
 app.use(express.json());
 app.use('/assets', express.static('public/assets'))
 
-app.use('/orders', orderRouter);
 
+app.use('/orders', orderRouter);
 app.use('/products', productRouter)
+app.use('/categories', categoriesRouter);
 
 app.use((request, response, next) => {
     response.status(404).json({
-        error: "Resource not found",
-        message: "The requested endpoint does not exist on the server"
+        error: "Risorsa non trovata",
+        message: "L'endpoint richiesto non esiste sul server"
     });
 });
 
