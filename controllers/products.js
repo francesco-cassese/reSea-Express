@@ -106,8 +106,8 @@ async function index(request, response) {
 
 async function show(request, response) {
     try {
-       const { slug } = request.params;
-       const normalizedSlug = typeof slug === "string" ? slug.trim() : "";
+        const { slug } = request.params;
+        const normalizedSlug = typeof slug === "string" ? slug.trim() : "";
 
         if (!normalizedSlug) {
             return response.status(400).json({
@@ -167,7 +167,7 @@ async function show(request, response) {
         return response.status(200).json({
             error: null,
             data: product
-
+        });
 
     } catch (error) {
         console.error(error);
