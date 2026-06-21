@@ -2,32 +2,90 @@ import connection from "../database/connection.js";
 
 async function index(request, response) {
     try {
-        const querySql = `
-            SELECT
-                id,
-                name,
-                slug,
-                description,
-                price,
-                create_date,
-                plastic_offset_kg,
-                image
-            FROM products
-            ORDER BY id DESC
+        const { search, category, minPrice, maxPrice, sortBy, limit } = request.query;
+
+        let querySql = `
+            SELECT DISTINCT
+                p.id,
+                p.name,
+                p.slug,
+                p.description,
+                p.price,
+                p.create_date,
+                p.plastic_offset_kg,
+                p.image
+            FROM products p
         `;
 
-        const [rows] = await connection.execute(querySql);
+        const params = [];
+        const conditions = ["1 = 1"];
+
+        if (category) {
+            querySql += `
+                JOIN product_category pc ON p.id = pc.product_id
+                JOIN categories c ON pc.category_id = c.id
+            `;
+            conditions.push("c.slug = ?");
+            params.push(category);
+        }
+
+        if (search) {
+            conditions.push("p.name LIKE ?");
+            params.push(`%${search}%`);
+        }
+        if (minPrice !== undefined) {
+            const parsedMinPrice = Number(minPrice);
+            if (!Number.isNaN(parsedMinPrice)) {
+                conditions.push("p.price >= ?");
+                params.push(Number(parsedMinPrice));
+            }
+        }
+
+        if (maxPrice !== undefined) {
+            const parsedMaxPrice = Number(maxPrice);
+            if (!Number.isNaN(parsedMaxPrice)) {
+                conditions.push("p.price <= ?");
+                params.push(Number(parsedMaxPrice));
+            }
+        }
+
+        querySql += ` WHERE ${conditions.join(" AND ")}`;
+
+        if (sortBy === "recent") {
+            querySql += " ORDER BY p.create_date DESC";
+        } else if (sortBy === "price_asc") {
+            querySql += " ORDER BY p.price ASC";
+        } else if (sortBy === "price_desc") {
+            querySql += " ORDER BY p.price DESC";
+        } else {
+            querySql += " ORDER BY p.id DESC";
+        }
+
+        if (limit !== undefined) {
+            const parsedLimit = Number(limit);
+            if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+                querySql += " LIMIT " + parsedLimit;
+            }
+        }
+
+        const [rows] = await connection.execute(querySql, params);
+
+        const normalizedRows = rows.map((product) => ({
+            ...product,
+            price: Number(product.price),
+            plastic_offset_kg: Number(product.plastic_offset_kg)
+        }));
 
         return response.status(200).json({
             error: null,
-            data: rows
+            data: normalizedRows
         })
 
     } catch (error) {
         console.error(error);
 
         return response.status(500).json({
-            error: "Internal Server Error",
+            error: "Errore interno del server",
             message: "Errore durante il recupero dei prodotti"
         })
     }
@@ -36,49 +94,70 @@ async function index(request, response) {
 async function show(request, response) {
     try {
         const { slug } = request.params;
-        const normalizedSlug = String(slug || "").trim().toLocaleLowerCase();
 
-        if(!normalizedSlug){
+        if (!slug || typeof slug !== "string" || !slug.trim()) {
             return response.status(400).json({
-                error: "Bad Request",
+                error: "Richiesta non valida",
                 message: "Slug non valido"
             });
         }
 
-        const querySql = `
-            SELECT
-                id,
-                name,
-                slug,
-                description,
-                price,
-                create_date,
-                plastic_offset_kg,
-                image
-            FROM products
-            WHERE slug = ?
+        const productSql = `
+            SELECT DISTINCT
+                p.id,
+                p.name,
+                p.slug,
+                p.description,
+                p.price,
+                p.create_date,
+                p.plastic_offset_kg,
+                p.image
+            FROM products p
+            WHERE p.slug = ?
             LIMIT 1
         `;
 
-        const [rows] = await connection.execute(querySql, [normalizedSlug]);
+        const [rows] = await connection.execute(productSql, [slug]);
 
         if (rows.length === 0) {
             return response.status(404).json({
-                error: "Not Found",
+                error: "Risorsa non trovata",
                 message: "Prodotto non trovato"
             });
         }
 
+        const product = {
+            ...rows[0],
+            price: Number(rows[0].price),
+            plastic_offset_kg: Number(rows[0].plastic_offset_kg)
+        };
+
+        const categoriesSql = `
+            SELECT
+                c.id,
+                c.name,
+                c.slug,
+                c.little_description
+            FROM categories c
+            JOIN product_category pc ON c.id = pc.category_id
+            WHERE pc.product_id = ?
+            ORDER BY c.name ASC
+        `;
+
+        const [categories] = await connection.execute(categoriesSql, [product.id]);
+
+        product.categories = categories;
+
         return response.status(200).json({
             error: null,
-            data: rows[0]
+            data: product
         });
 
     } catch (error) {
         console.error(error);
 
         return response.status(500).json({
-            error: "Internal Server Error",
+            error: "Errore interno del server",
             message: "Errore durante il recupero dei prodotti"
         })
     }
