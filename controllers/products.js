@@ -1,4 +1,6 @@
 import connection from "../database/connection.js";
+import { formatProduct } from "../utils/utils.js";
+
 
 async function index(request, response) {
     try {
@@ -76,9 +78,20 @@ async function index(request, response) {
             plastic_offset_kg: Number(product.plastic_offset_kg)
         }));
 
+        // per creare un percorso assoluto verso le immagini nel backend
+        // request.protocol intercetta automaticamente "http" o "https" a seconda dalla chiamata che arriva al database
+        // request.get('host') intercetta invece l'host che nel nostro caso è "localhost:3000" quindi alla fine ci ritroveremo con 
+        // baseURL='http://localhost:3000'    
+        const baseUrl = `${request.protocol}://${request.get('host')}`;
+
+        // Utilizzo .map() per creare un nuovo array per poter trasformare ogni singolo oggetto 'product' e lo passo alla funzione,
+        // insieme alla base recuperata in precedenza, il resto lo troverete in utils\utils.js
+        const productsFormatted = rows.map(product => formatProduct(product, baseUrl));
+
         return response.status(200).json({
             error: null,
-            data: normalizedRows
+            data: productsFormatted
+
         })
 
     } catch (error) {
@@ -93,9 +106,10 @@ async function index(request, response) {
 
 async function show(request, response) {
     try {
-        const { slug } = request.params;
+       const { slug } = request.params;
+       const normalizedSlug = typeof slug === "string" ? slug.trim() : "";
 
-        if (!slug || typeof slug !== "string" || !slug.trim()) {
+        if (!normalizedSlug) {
             return response.status(400).json({
                 error: "Richiesta non valida",
                 message: "Slug non valido"
@@ -126,6 +140,8 @@ async function show(request, response) {
             });
         }
 
+        const baseUrl = `${request.protocol}://${request.get('host')}`;
+        const productFormatted = formatProduct(rows[0], baseUrl);
         const product = {
             ...rows[0],
             price: Number(rows[0].price),
@@ -151,7 +167,7 @@ async function show(request, response) {
         return response.status(200).json({
             error: null,
             data: product
-        });
+
 
     } catch (error) {
         console.error(error);
