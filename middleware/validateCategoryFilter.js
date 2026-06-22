@@ -1,5 +1,5 @@
 import { response } from "express";
-import connection from "../database/connection";
+import connection from "../database/connection.js";
 
 async function validateCategoryFilter(request, params, next) {
     try {
