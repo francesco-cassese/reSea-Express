@@ -72,12 +72,6 @@ async function index(request, response) {
 
         const [rows] = await connection.execute(querySql, params);
 
-        const normalizedRows = rows.map((product) => ({
-            ...product,
-            price: Number(product.price),
-            plastic_offset_kg: Number(product.plastic_offset_kg)
-        }));
-
         // per creare un percorso assoluto verso le immagini nel backend
         // request.protocol intercetta automaticamente "http" o "https" a seconda dalla chiamata che arriva al database
         // request.get('host') intercetta invece l'host che nel nostro caso è "localhost:3000" quindi alla fine ci ritroveremo con 
