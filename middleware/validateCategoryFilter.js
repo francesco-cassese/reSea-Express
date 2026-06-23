@@ -1,7 +1,7 @@
 import { response } from "express";
 import connection from "../database/connection.js";
 
-async function validateCategoryFilter(request, params, next) {
+async function validateCategoryFilter(request, response, next) {
     try {
         const { category } = request.query;
 
