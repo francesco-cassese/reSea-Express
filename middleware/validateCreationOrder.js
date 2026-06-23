@@ -44,12 +44,7 @@ function validateCreationOrder(request, response, next) {
     if (billing_address == null) {
         errors.push({ field: "billing_address", message: "Campo obbligatorio" });
     }
-    if (total_amount == null) {
-        errors.push({ field: "total_amount", message: "Campo obbligatorio" });
-    }
-    if (order_date == null) {
-        errors.push({ field: "order_date", message: "Campo obbligatorio" });
-    }
+
     if (client_name == null) {
         errors.push({ field: "client_name", message: "Campo obbligatorio" });
     }
@@ -124,9 +119,11 @@ function validateCreationOrder(request, response, next) {
     }
 
     // Validazione importo
-    const amount = Number(total_amount);
-    if (Number.isNaN(amount) || amount <= 0) {
-        errors.push({ field: "total_amount", message: "Deve essere un numero maggiore di zero" });
+    if (total_amount !== undefined && total_amount !== null) {
+        const amount = Number(total_amount);
+        if (Number.isNaN(amount) || amount <= 0) {
+            errors.push({ field: "total_amount", message: "Deve essere un numero maggiore di zero" });
+        }
     }
 
     // Validazione telefono
@@ -138,9 +135,11 @@ function validateCreationOrder(request, response, next) {
     }
 
     // Validazione data
-    const normalizedOrderDate = normalizeOrderDate(order_date);
-    if (!normalizedOrderDate) {
-        errors.push({ field: "order_date", message: "Data non valida (formato: YYYY-MM-DD o YYYY-MM-DD HH:MM:SS)" });
+    if (order_date !== undefined && order_date !== null) {
+        const normalizedOrderDate = normalizeOrderDate(order_date);
+        if (!normalizedOrderDate) {
+            errors.push({ field: "order_date", message: "Data non valida" });
+        }
     }
 
     // Se ci sono errori, restituiscili tutti
@@ -157,8 +156,14 @@ function validateCreationOrder(request, response, next) {
     request.body.billing_address = billing;
     request.body.client_name = name;
     request.body.phone_number = phone;
-    request.body.total_amount = amount;
-    request.body.order_date = normalizedOrderDate;
+
+    if (total_amount !== undefined && total_amount !== null) {
+        request.body.total_amount = amount;
+    }
+
+    if (order_date !== undefined && order_date !== null) {
+        request.body.order_date = normalizedOrderDate;
+    }
 
     next();
 

@@ -90,7 +90,7 @@ async function show(request, response) {
 }
 
 async function create(request, response) {
-    console.log("Dati ricevuti dal body:", request.body);
+
     try {
         const {
             email_client,
