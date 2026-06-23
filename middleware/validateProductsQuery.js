@@ -1,17 +1,14 @@
 function validateProductsQuery(request, response, next) {
-    const { search, category, minPrice, maxPrice, limit, sortBy } = request.query;
-    const allowedSort = ["recent", "price_asc", "price_desc"];
-    const allowedParams = ["search", "category", "minPrice", "maxPrice", "limit", "sortBy"];
+    const { search, category, minPrice, maxPrice, limit, sortBy, page } = request.query;
 
-    //whitelist query params
-    const unknownParams = Object.keys(request.query).filter(
-        (key) => !allowedParams.includes(key)
-    );
+    const allowedSort = ["recent", "price_asc", "price_desc", "name_asc", "name_desc"];
+    const allowedParams = ["search", "category", "minPrice", "maxPrice", "limit", "sortBy", "page"];
 
+    const unknownParams = Object.keys(request.query).filter((key) => !allowedParams.includes(key));
     if (unknownParams.length > 0) {
         return response.status(400).json({
             error: "Richiesta non valida",
-            message: "Paramentri di query non supportati",
+            message: "Parametri di query non supportati",
             details: {
                 unknown: unknownParams,
                 allowed: allowedParams
@@ -19,12 +16,10 @@ function validateProductsQuery(request, response, next) {
         });
     }
 
-
-    //validazione dei valori
     if (sortBy !== undefined && !allowedSort.includes(sortBy)) {
         return response.status(400).json({
             error: "Richiesta non valida",
-            message: "sortBy non valido. Valori ammessi: recent, price_asc, price_desc"
+            message: "sortBy non valido. Valori ammessi: recent, price_asc, price_desc, name_asc, name_desc"
         });
     }
 
@@ -84,13 +79,13 @@ function validateProductsQuery(request, response, next) {
         request.validatedLimit = parsedLimit;
     }
 
-    if(page !== undefined) {
+    if (page !== undefined) {
         const parsedPage = Number(page);
-        if(!Number.isInteger(parsedPage) || parsedPage <= 0 || parsedPage > 1000) {
+        if (!Number.isInteger(parsedPage) || parsedPage <= 0 || parsedPage > 1000) {
             return response.status(400).json({
                 error: "Richiesta non valida",
-                message: "page deve essere un intero maggiore di 0"
-            })
+                message: "page deve essere un intero tra 1 e 1000"
+            });
         }
         request.validatedPage = parsedPage;
     }
