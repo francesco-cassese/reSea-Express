@@ -101,22 +101,44 @@ async function create(request, response) {
             items
         } = request.body;
 
+
+        const placeholders = items.map(() => '?').join(',');
+
+
+        const productIds = items.map(item => item.id);
+
+
+        const [products] = await connection.execute(
+            `SELECT id, plastic_offset_kg, price FROM products WHERE id IN (${placeholders})`,
+            productIds
+        );
+
         await connection.beginTransaction();
 
+        const productMap = products.reduce((accumulator, p) => {
+            accumulator[p.id] = { price: p.price, plastic: p.plastic_offset_kg };
+            return accumulator;
+        }, {});
+
         let totalAmount = 0;
+        let totalPlastic = 0;
         const processedItems = [];
 
         for (const item of items) {
-            const [rows] = await connection.execute(
-                "SELECT price FROM products WHERE id = ?", [item.id]
-            );
+            const productInfo = productMap[item.id];
 
-            if (rows.length === 0) throw new Error(`Prodotto ${item.id} non trovato`);
+            if (!item.quantity || item.quantity < 1) {
+                throw new Error(`Quantità non valida per il prodotto ${item.id}`);
+            }
 
-            const unitPrice = rows[0].price;
-            totalAmount += unitPrice * item.quantity;
+            if (!productInfo) {
+                throw new Error(`Prodotto ID ${item.id} non trovato`);
+            }
 
-            processedItems.push({ ...item, product_id: item.id, unitPrice });
+            totalAmount += productInfo.price * item.quantity;
+            totalPlastic += productInfo.plastic * item.quantity;
+
+            processedItems.push({ ...item, unitPrice: productInfo.price });
         }
 
         const querySql = `
@@ -138,7 +160,7 @@ async function create(request, response) {
         for (const item of processedItems) {
             await connection.execute(
                 "INSERT INTO order_product (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)",
-                [orderId, item.product_id, item.quantity, item.unitPrice]
+                [orderId, item.id, item.quantity, item.unitPrice]
             );
         }
 
@@ -146,14 +168,19 @@ async function create(request, response) {
 
         return response.status(201).json({
             message: "Ordine creato con successo",
-            data: { id: orderId, total: totalAmount }
+            data: {
+                id: orderId,
+                total: totalAmount,
+                total_plastic: totalPlastic
+            }
         });
+
     } catch (error) {
         await connection.rollback();
         console.error(error);
 
-        if (error.message.includes("non trovato")) {
-            return response.status(404).json({ message: error.message });
+        if (error.message.includes("non trovato") || error.message.includes("non valida")) {
+            return response.status(400).json({ message: error.message });
         }
 
         return response.status(500).json({ error: "Errore interno del server" });
