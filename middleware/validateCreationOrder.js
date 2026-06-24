@@ -158,16 +158,14 @@ function validateCreationOrder(request, response, next) {
     request.body.phone_number = phone;
 
     if (total_amount !== undefined && total_amount !== null) {
-        request.body.total_amount = amount;
+        request.body.total_amount = Number(total_amount);
     }
 
     if (order_date !== undefined && order_date !== null) {
-        request.body.order_date = normalizedOrderDate;
+        request.body.order_date = normalizeOrderDate(order_date);
     }
 
     next();
-
-
 
 }
 
