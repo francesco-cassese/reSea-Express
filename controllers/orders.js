@@ -1,4 +1,5 @@
 import connection from "../database/connection.js";
+import { sendMail, generateEmailHtml } from "../services/emailService.js";
 
 async function index(request, response) {
     try {
@@ -141,6 +142,10 @@ async function create(request, response) {
             processedItems.push({ ...item, unitPrice: productInfo.price });
         }
 
+        const IVA_RATE = 0.22; // 22%
+        const totalIVA = totalAmount * IVA_RATE;
+        const totalWithIVA = totalAmount + totalIVA;
+
         const querySql = `
             INSERT INTO orders (email_client, shipping_address, billing_address, total_amount, order_date, client_name, phone_number)
             VALUES (?, ?, ?, ?, NOW(), ?, ?)
@@ -150,7 +155,7 @@ async function create(request, response) {
             email_client,
             shipping_address,
             billing_address,
-            totalAmount,
+            totalWithIVA,
             client_name,
             phone_number
         ]);
@@ -166,12 +171,31 @@ async function create(request, response) {
 
         await connection.commit();
 
+        const emailData = {
+            client_name: client_name,
+            orderId: orderId,
+            totalAmount: totalWithIVA.toFixed(2),
+            totalPlastic: totalPlastic.toFixed(2)
+        };
+
+        try {
+            const emailBody = await generateEmailHtml('orderConfirmation', emailData);
+            await sendMail({
+                to: email_client,
+                subject: `Conferma ordine reSea #${orderId}`,
+                body: emailBody
+            });
+        } catch (emailError) {
+            console.error("L'ordine è stato creato, ma l'invio dell'email è fallito:", emailError);
+        }
+
         return response.status(201).json({
             message: "Ordine creato con successo",
             data: {
                 id: orderId,
-                total: totalAmount,
-                total_plastic: totalPlastic
+                total: totalWithIVA,
+                total_plastic: totalPlastic,
+                items: processedItems
             }
         });
 

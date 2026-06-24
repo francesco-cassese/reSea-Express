@@ -21,6 +21,8 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "mysql2": "^3.22.5"
+    "handlebars": "^4.7.9",
+    "mysql2": "^3.22.5",
+    "nodemailer": "^9.0.1"
   }
 }
