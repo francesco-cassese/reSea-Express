@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import orderRouter from './routers/orders-router.js';
 import productRouter from './routers/products-router.js';
 import categoriesRouter from './routers/categories-router.js';
+import agentRouter from './routers/agent-router.js';
 
 
 const app = express();
@@ -24,6 +25,7 @@ app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 app.use('/orders', orderRouter);
 app.use('/products', productRouter)
 app.use('/categories', categoriesRouter);
+app.use("/agent", agentRouter);
 
 app.use((request, response, next) => {
     response.status(404).json({

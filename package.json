@@ -19,9 +19,11 @@
   },
   "type": "module",
   "dependencies": {
+    "@langchain/anthropic": "^1.5.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "handlebars": "^4.7.9",
+    "langchain": "^1.5.2",
     "mysql2": "^3.22.5",
     "nodemailer": "^9.0.1"
   }
