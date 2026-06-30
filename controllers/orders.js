@@ -175,6 +175,7 @@ async function create(request, response) {
             client_name: client_name,
             orderId: orderId,
             totalAmount: totalWithIVA.toFixed(2),
+            iva: totalIVA.toFixed(2),
             totalPlastic: totalPlastic.toFixed(2)
         };
 
@@ -213,6 +214,7 @@ async function create(request, response) {
             data: {
                 id: orderId,
                 total: totalWithIVA,
+                iva: totalIVA,
                 total_plastic: totalPlastic,
                 items: processedItems
             }
