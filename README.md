@@ -33,7 +33,7 @@ reSea Express espone le API necessarie a un negozio online di prodotti eco-soste
 
 ## Frontend
 Questa API è progettata per servire il client web. Puoi trovare il repository del frontend qui:
-[reSea Frontend](https://github.com/BelliaNino/reSea-Frontend)
+[reSea Frontend](https://github.com/francesco-cassese/reSea-Frontend)
 
 ## Prerequisiti
 
